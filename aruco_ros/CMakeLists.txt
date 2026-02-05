@@ -115,6 +115,14 @@ foreach(dir etc launch)
             DESTINATION share/${PROJECT_NAME}/${dir})
 endforeach()
 
+# ADDED EXPORTS
+ament_export_include_directories(
+  include
+)
+ament_export_libraries(
+  aruco_ros_utils
+)
+
 ament_package()
 
 
