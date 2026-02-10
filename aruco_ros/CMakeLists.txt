@@ -107,7 +107,7 @@ install(TARGETS marker_publisher single double
 
 install(DIRECTORY include/
         DESTINATION include
-        FILES_MATCHING PATTERN "*.h"
+        FILES_MATCHING PATTERN "*.hpp"
 )
 
 foreach(dir etc launch)
