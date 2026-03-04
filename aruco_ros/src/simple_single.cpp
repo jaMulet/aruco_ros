@@ -63,6 +63,7 @@ private:
   cv::Mat inImage_;
   aruco::CameraParameters camParam_;
   tf2::Stamped<tf2::Transform> rightToLeft_;
+  std::vector<double> reference_matrix;
   bool useRectifiedImages_;
   aruco::MarkerDetector mDetector_;
   std::vector<aruco::Marker> markers_;
@@ -138,6 +139,8 @@ public:
     this->declare_parameter<float>("min_marker_size", 0.02);
     this->declare_parameter<std::string>("detection_mode", "");
 
+    this->declare_parameter<std::vector<double>>("reference_matrix", {1.000, 0.000, 0.000, 0.0083, 0.000, 1.000, 0.000, 0.036, 0.000, 0.000, 1.000, 0.000, 0.000, 0.000, 0.000, 1.000});
+
     float min_marker_size;  // percentage of image area
     this->get_parameter_or<float>("min_marker_size", min_marker_size, 0.02);
 
@@ -177,6 +180,8 @@ public:
     this->get_parameter_or<std::string>("camera_frame", camera_frame_, "");
     this->get_parameter_or<std::string>("marker_frame", marker_frame_, "");
     this->get_parameter_or<bool>("image_is_rectified", useRectifiedImages_, true);
+
+    this->get_parameter<std::vector<double>>("reference_matrix", reference_matrix);
 
     rcpputils::assert_true(
       camera_frame_ != "" && marker_frame_ != "",
@@ -258,6 +263,7 @@ public:
             tf2::Transform transform = aruco_ros::arucoMarker2Tf2(markers_[i]);
             tf2::Stamped<tf2::Transform> cameraToReference;
             cameraToReference.setIdentity();
+            cameraToReference.setOrigin(tf2::Vector3(reference_matrix[3], reference_matrix[7], 0.0));
 
             if (reference_frame_ != camera_frame_) {
               geometry_msgs::msg::TransformStamped transform_stamped;
@@ -265,7 +271,7 @@ public:
               tf2::fromMsg(transform_stamped, cameraToReference);
             }
 
-            transform = static_cast<tf2::Transform>(cameraToReference) *
+            transform = static_cast<tf2::Transform>(cameraToReference).inverse() *
               static_cast<tf2::Transform>(rightToLeft_) *
               transform;
 
